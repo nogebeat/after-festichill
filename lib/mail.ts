@@ -66,7 +66,7 @@ export async function sendInvitationEmail(params: {
                 <td style="color:#fff;font-size:15px;font-weight:600;padding-bottom:8px;">${process.env.EVENT_LOCATION}</td>
               </tr>
               <tr>
-                <td><a href="${process.env.EVENT_MAP_LINK}" style="color:#c9a961;font-size:13px;">Voir l'itinéraire →</a></td>
+                <td><a style="color:#c9a961;font-size:13px;">Voir l'itinéraire : Il ${process.env.EVENT_MAP_LINK}</a></td>
               </tr>
             </table>
           </td>
