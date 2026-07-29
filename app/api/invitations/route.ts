@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { nanoid } from "nanoid";
-import { readDB, writeDB } from "@/lib/db";
+import { createInvitation, findInvitationByEmail, getAllInvitations } from "@/lib/db";
 import { signCode } from "@/lib/qr";
 import { sendInvitationEmail } from "@/lib/mail";
 
@@ -12,8 +12,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Champs manquants" }, { status: 400 });
     }
 
-    const db = readDB();
-    const existing = db.find((i) => i.email.toLowerCase() === email.toLowerCase());
+    const existing = await findInvitationByEmail(email);
     if (existing) {
       return NextResponse.json(
         { error: "Cet email a déjà un pass. Vérifie ta boîte mail." },
@@ -25,18 +24,14 @@ export async function POST(req: NextRequest) {
     const sig = signCode(code);
     const qrPayload = `${code}.${sig}`;
 
-    const invitation = {
+    const invitation = await createInvitation({
       id: nanoid(),
       nom,
       prenom,
       telephone,
       email,
       code,
-      used: false,
-      createdAt: new Date().toISOString(),
-    };
-    db.push(invitation);
-    writeDB(db);
+    });
 
     await sendInvitationEmail({ to: email, prenom, qrPayload });
 
@@ -48,5 +43,6 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET() {
-  return NextResponse.json(readDB());
+  const invitations = await getAllInvitations();
+  return NextResponse.json(invitations);
 }

@@ -1,0 +1,13 @@
+CREATE TABLE IF NOT EXISTS invitations (
+  id VARCHAR(36) NOT NULL PRIMARY KEY,
+  nom VARCHAR(255) NOT NULL,
+  prenom VARCHAR(255) NOT NULL,
+  telephone VARCHAR(50) NOT NULL,
+  email VARCHAR(255) NOT NULL,
+  code VARCHAR(50) NOT NULL,
+  used TINYINT(1) NOT NULL DEFAULT 0,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  used_at DATETIME NULL,
+  UNIQUE KEY uniq_invitations_email (email),
+  UNIQUE KEY uniq_invitations_code (code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -3,13 +3,16 @@
 @tailwind utilities;
 
 :root {
-  --bg: #0b0b0b;
-  --card: #141210;
+  --bg: #0b0a09;
+  --card: rgba(20, 17, 14, 0.72);
+  --card-solid: #141210;
+  --border: rgba(201, 169, 97, 0.18);
   --gold: #c9a961;
-  --gold-bright: #e8cd8a;
+  --gold-bright: #f0d99e;
   --wine: #6f1f2b;
   --ink: #f4f0e8;
-  --muted: #8a8378;
+  --muted: #a89f8f;
+  --bg-image: url("https://res.cloudinary.com/dppctvbxe/image/upload/v1785269788/events/llggxwori9norl8lz5cm.webp");
 }
 
 * {
@@ -23,15 +26,37 @@ html, body {
 }
 
 .font-display {
-  font-family: "Arial Narrow", "Helvetica Neue Condensed", Impact, sans-serif;
-  font-stretch: condensed;
-  letter-spacing: 0.01em;
+  font-family: var(--font-display), "Arial Narrow", Impact, sans-serif;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
-  font-weight: 700;
+  font-weight: 400;
 }
 
 body {
-  font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  font-family: var(--font-body), -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+
+/* full-bleed background photo, fixed so it never scrolls away */
+.event-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background-image: var(--bg-image);
+  background-size: cover;
+  background-position: center 30%;
+  background-repeat: no-repeat;
+  transform: scale(1.03);
+}
+
+/* darkening / color-grade so text + card stay readable over any photo */
+.event-bg-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(11, 10, 9, 0.35) 0%, rgba(11, 10, 9, 0.78) 55%, rgba(11, 10, 9, 0.96) 100%),
+    linear-gradient(180deg, rgba(11, 10, 9, 0.55) 0%, rgba(11, 10, 9, 0.4) 30%, rgba(11, 10, 9, 0.9) 100%);
 }
 
 /* grain texture overlay */
@@ -39,9 +64,15 @@ body {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  opacity: 0.05;
+  opacity: 0.06;
   z-index: 50;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.ticket-card {
+  background: var(--card);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
 }
 
 .ticket-notch {
@@ -55,12 +86,12 @@ body {
 }
 
 @keyframes glow-pulse {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 0.9; }
 }
 
 .glow-pulse {
-  animation: glow-pulse 3s ease-in-out infinite;
+  animation: glow-pulse 4s ease-in-out infinite;
 }
 
 @keyframes rise {

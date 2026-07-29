@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { readDB, writeDB } from "@/lib/db";
+import { findInvitationByCode, markInvitationUsed } from "@/lib/db";
 import { verifyPayload } from "@/lib/qr";
 
 export async function POST(req: NextRequest) {
@@ -10,8 +10,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ valid: false, reason: "QR invalide ou falsifié" }, { status: 400 });
   }
 
-  const db = readDB();
-  const invitation = db.find((i) => i.code === code);
+  const invitation = await findInvitationByCode(code);
 
   if (!invitation) {
     return NextResponse.json({ valid: false, reason: "Introuvable" }, { status: 404 });
@@ -20,9 +19,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ valid: false, reason: "Déjà scanné", invitation }, { status: 409 });
   }
 
-  invitation.used = true;
-  invitation.usedAt = new Date().toISOString();
-  writeDB(db);
+  const updated = await markInvitationUsed(code);
 
-  return NextResponse.json({ valid: true, invitation });
+  return NextResponse.json({ valid: true, invitation: updated });
 }

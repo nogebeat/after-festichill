@@ -41,13 +41,13 @@ export default function TicketForm() {
   return (
     <div className="relative w-full max-w-[420px] mx-auto">
       {/* Ticket card */}
-      <div className="relative bg-[var(--card)] rounded-[20px] border border-[#2a2620] shadow-[0_0_60px_-15px_rgba(201,169,97,0.25)] overflow-hidden">
+      <div className="ticket-card relative rounded-[20px] border border-[var(--border)] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.65),0_0_60px_-15px_rgba(201,169,97,0.2)] overflow-hidden">
         {/* Stub header */}
         <div className="px-8 pt-8 pb-6 relative">
-          <p className="font-display text-[13px] tracking-[0.35em] text-[var(--gold)] uppercase mb-1">
+          <p className="font-display text-[14px] tracking-[0.35em] text-[var(--gold)] mb-1">
             Pass nominatif
           </p>
-          <h2 className="font-display text-[38px] leading-[0.9] text-[var(--ink)]">
+          <h2 className="font-display text-[42px] leading-[0.9] text-[var(--ink)]">
             Réserve ta place
           </h2>
           <p className="text-[13px] text-[var(--muted)] mt-2">
@@ -56,7 +56,7 @@ export default function TicketForm() {
         </div>
 
         {/* Perforated divider */}
-        <div className="relative h-0 border-t-2 border-dashed border-[#2f2b24] mx-0">
+        <div className="relative h-0 border-t-2 border-dashed border-[var(--border)] mx-0">
           <span className="ticket-notch -left-[14px] top-1/2 -translate-y-1/2" style={{ left: "-14px" }} />
           <span className="ticket-notch" style={{ right: "-14px", left: "auto", top: "-14px", transform: "translateY(-50%)" }} />
         </div>
@@ -118,7 +118,7 @@ function Field({
       name={name}
       type={type}
       placeholder={placeholder}
-      className="w-full bg-[#0f0d0b] border border-[#2a2620] rounded-lg px-4 py-3 text-[14px] text-[var(--ink)] placeholder:text-[var(--muted)] outline-none focus:border-[var(--gold)] transition-colors"
+      className="w-full bg-black/30 border border-[var(--border)] rounded-lg px-4 py-3 text-[14px] text-[var(--ink)] placeholder:text-[var(--muted)] outline-none focus:border-[var(--gold)] focus:bg-black/40 transition-colors"
     />
   );
 }
