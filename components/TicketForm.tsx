@@ -51,7 +51,7 @@ export default function TicketForm() {
             Réserve ta place
           </h2>
           <p className="text-[13px] text-[var(--muted)] mt-2">
-            Un pass QR unique t&apos;attend dans ta boîte mail.
+            Ta demande est validée par nos équipes, puis ton pass QR arrive par email.
           </p>
         </div>
 
@@ -69,10 +69,10 @@ export default function TicketForm() {
                 <span className="font-display text-2xl text-[var(--gold)]">✓</span>
               </div>
               <p className="font-display text-2xl tracking-wide text-[var(--gold-bright)] mb-1">
-                Pass confirmé
+                Demande envoyée
               </p>
               <p className="text-[13px] text-[var(--muted)]">
-                Check ta boîte mail (et les spams) pour ton QR code.
+                Ta demande est en cours de validation. Tu recevras ton QR code par email dès qu&apos;elle sera approuvée.
               </p>
             </div>
           ) : (

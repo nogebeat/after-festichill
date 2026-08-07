@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { nanoid } from "nanoid";
-import { createInvitation, findInvitationByEmail, getAllInvitations } from "@/lib/db";
-import { signCode } from "@/lib/qr";
-import { sendInvitationEmail } from "@/lib/mail";
+import {
+  createInvitation,
+  findInvitationByEmail,
+  getAllInvitations,
+  getInvitationsByStatus,
+  InvitationStatus,
+} from "@/lib/db";
+import { sendAdminNewRequestEmail } from "@/lib/mail";
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,14 +20,14 @@ export async function POST(req: NextRequest) {
     const existing = await findInvitationByEmail(email);
     if (existing) {
       return NextResponse.json(
-        { error: "Cet email a déjà un pass. Vérifie ta boîte mail." },
+        { error: "Cet email a déjà une demande en cours ou un pass. Vérifie ta boîte mail." },
         { status: 409 }
       );
     }
 
+    // Le code QR est généré tout de suite (pour être stable) mais n'est
+    // signé et envoyé qu'une fois la demande approuvée par l'admin.
     const code = nanoid(10);
-    const sig = signCode(code);
-    const qrPayload = `${code}.${sig}`;
 
     const invitation = await createInvitation({
       id: nanoid(),
@@ -33,16 +38,23 @@ export async function POST(req: NextRequest) {
       code,
     });
 
-    await sendInvitationEmail({ to: email, prenom, qrPayload });
+    // Notifie l'admin qu'une demande attend une validation.
+    await sendAdminNewRequestEmail({ nom, prenom, email, telephone });
 
-    return NextResponse.json({ success: true, id: invitation.id });
+    return NextResponse.json({ success: true, id: invitation.id, status: "pending" });
   } catch (err) {
     console.error(err);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }
 
-export async function GET() {
-  const invitations = await getAllInvitations();
+export async function GET(req: NextRequest) {
+  const status = req.nextUrl.searchParams.get("status") as InvitationStatus | null;
+
+  const invitations =
+    status && ["pending", "approved", "rejected"].includes(status)
+      ? await getInvitationsByStatus(status)
+      : await getAllInvitations();
+
   return NextResponse.json(invitations);
 }

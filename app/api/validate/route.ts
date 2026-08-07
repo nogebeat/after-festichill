@@ -15,6 +15,18 @@ export async function POST(req: NextRequest) {
   if (!invitation) {
     return NextResponse.json({ valid: false, reason: "Introuvable" }, { status: 404 });
   }
+  if (invitation.status === "pending") {
+    return NextResponse.json(
+      { valid: false, reason: "Demande en attente de validation", invitation },
+      { status: 403 }
+    );
+  }
+  if (invitation.status === "rejected") {
+    return NextResponse.json(
+      { valid: false, reason: "Demande refusée", invitation },
+      { status: 403 }
+    );
+  }
   if (invitation.used) {
     return NextResponse.json({ valid: false, reason: "Déjà scanné", invitation }, { status: 409 });
   }

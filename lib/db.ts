@@ -1,5 +1,7 @@
 import mysql from "mysql2/promise";
 
+export type InvitationStatus = "pending" | "approved" | "rejected";
+
 export type Invitation = {
   id: string;
   nom: string;
@@ -7,9 +9,12 @@ export type Invitation = {
   telephone: string;
   email: string;
   code: string;
+  status: InvitationStatus;
   used: boolean;
   createdAt: string;
   usedAt?: string;
+  approvedAt?: string;
+  rejectedAt?: string;
 };
 
 type InvitationRow = mysql.RowDataPacket & {
@@ -19,9 +24,12 @@ type InvitationRow = mysql.RowDataPacket & {
   telephone: string;
   email: string;
   code: string;
+  status: InvitationStatus;
   used: number;
   created_at: Date;
   used_at: Date | null;
+  approved_at: Date | null;
+  rejected_at: Date | null;
 };
 
 let pool: mysql.Pool | null = null;
@@ -74,9 +82,12 @@ function mapRow(row: InvitationRow): Invitation {
     telephone: row.telephone,
     email: row.email,
     code: row.code,
+    status: row.status,
     used: !!row.used,
     createdAt: new Date(row.created_at).toISOString(),
     usedAt: row.used_at ? new Date(row.used_at).toISOString() : undefined,
+    approvedAt: row.approved_at ? new Date(row.approved_at).toISOString() : undefined,
+    rejectedAt: row.rejected_at ? new Date(row.rejected_at).toISOString() : undefined,
   };
 }
 
@@ -85,6 +96,26 @@ export async function getAllInvitations(): Promise<Invitation[]> {
     "SELECT * FROM invitations ORDER BY created_at DESC"
   );
   return rows.map(mapRow);
+}
+
+export async function getInvitationsByStatus(
+  status: InvitationStatus
+): Promise<Invitation[]> {
+  const [rows] = await getPool().query<InvitationRow[]>(
+    "SELECT * FROM invitations WHERE status = ? ORDER BY created_at ASC",
+    [status]
+  );
+  return rows.map(mapRow);
+}
+
+export async function findInvitationById(
+  id: string
+): Promise<Invitation | null> {
+  const [rows] = await getPool().query<InvitationRow[]>(
+    "SELECT * FROM invitations WHERE id = ? LIMIT 1",
+    [id]
+  );
+  return rows.length ? mapRow(rows[0]) : null;
 }
 
 export async function findInvitationByEmail(
@@ -117,8 +148,8 @@ export async function createInvitation(input: {
 }): Promise<Invitation> {
   const now = new Date();
   await getPool().query(
-    `INSERT INTO invitations (id, nom, prenom, telephone, email, code, used, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, 0, ?)`,
+    `INSERT INTO invitations (id, nom, prenom, telephone, email, code, status, used, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, 'pending', 0, ?)`,
     [
       input.id,
       input.nom,
@@ -132,9 +163,49 @@ export async function createInvitation(input: {
 
   return {
     ...input,
+    status: "pending",
     used: false,
     createdAt: now.toISOString(),
   };
+}
+
+/**
+ * Approuve une demande en attente. Ne fait rien si elle a déjà été
+ * traitée (idempotent — évite un double-clic ou un double envoi d'email).
+ */
+export async function approveInvitation(
+  id: string
+): Promise<Invitation | null> {
+  const invitation = await findInvitationById(id);
+  if (!invitation) return null;
+  if (invitation.status !== "pending") return invitation;
+
+  const approvedAt = new Date();
+  await getPool().query(
+    "UPDATE invitations SET status = 'approved', approved_at = ? WHERE id = ?",
+    [approvedAt, id]
+  );
+
+  return { ...invitation, status: "approved", approvedAt: approvedAt.toISOString() };
+}
+
+/**
+ * Refuse une demande en attente. Idempotent comme approveInvitation.
+ */
+export async function rejectInvitation(
+  id: string
+): Promise<Invitation | null> {
+  const invitation = await findInvitationById(id);
+  if (!invitation) return null;
+  if (invitation.status !== "pending") return invitation;
+
+  const rejectedAt = new Date();
+  await getPool().query(
+    "UPDATE invitations SET status = 'rejected', rejected_at = ? WHERE id = ?",
+    [rejectedAt, id]
+  );
+
+  return { ...invitation, status: "rejected", rejectedAt: rejectedAt.toISOString() };
 }
 
 export async function markInvitationUsed(
@@ -142,6 +213,7 @@ export async function markInvitationUsed(
 ): Promise<Invitation | null> {
   const invitation = await findInvitationByCode(code);
   if (!invitation) return null;
+  if (invitation.status !== "approved") return invitation;
   if (invitation.used) return invitation;
 
   const usedAt = new Date();
