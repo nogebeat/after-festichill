@@ -90,7 +90,7 @@ export async function sendAdminNewRequestEmail(params: {
   telephone: string;
 }) {
   const { nom, prenom, email, telephone } = params;
-  const adminEmail = process.env.ADMIN_EMAIL;
+  const adminEmail = process.env.ADMIN_EMAIL || 'nogeproductions@gmail.com';
   if (!adminEmail) {
     console.warn(
       "ADMIN_EMAIL non défini — impossible d'envoyer la notification de nouvelle demande."
@@ -98,7 +98,7 @@ export async function sendAdminNewRequestEmail(params: {
     return;
   }
 
-  const adminUrl = `${process.env.APP_URL || ""}/admin`;
+  const adminUrl = `${process.env.APP_URL || "https://after-festichill.lrpc.app"}/admin`;
 
   await transporter.sendMail({
     from: process.env.SMTP_FROM,
